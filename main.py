@@ -12,32 +12,10 @@ app = Flask(__name__)
 
 app.config['DEBUG'] = True      # displays runtime errors in the browser, too
 
-# a registration form
-register_form = """
-    <style>
-        .error{{color: red;}}
-    </style>
-    <form action="/signup" id="form" method="POST">
-      <h1>Signup</h1>
-      <label for="username">Username </label>
-      <input type="text" name="username" id="username" value="{username}" />
-      <p class="error">{usernameError}</p>
-      <label for="password">Password </label>
-      <input type="password" name="password" id="password" value="{password}" />
-      <p class="error">{passwordError}</p>
-      <label for="password">Verify Password </label>
-      <input type="password" name="verify_password" id="verify_password" value="{verify_password}" />
-      <p class="error">{verify_passwordError}</p>
-      <label for="email">Email(optional)</label>
-      <input type="text" name="email" id="email" value="{email}"/>
-      <p class="error">{emailError}</p>
-      <button type="submit">Submit</button>
-    </form>
-"""
 @app.route('/signup')
 def signup():
-    return register_form.format(username = '', password='', verify_password='', email='', usernameError = '',
-             passwordError = '', verify_passwordError = '', emailError='' )
+    template = jinja2_env.get_template('signup.html')
+    return template.render()
 
 @app.route('/signup', methods=['POST'])
 def register():
@@ -76,7 +54,8 @@ def register():
     
 
     if usernameError or passwordError or verify_passwordError or emailError :
-        return register_form.format(username=username, usernameError=usernameError, 
+        template = jinja2_env.get_template('signup.html')
+        return template.render(username=username, usernameError=usernameError, 
         password=password, passwordError=passwordError, verify_password=verify_password, 
         verify_passwordError=verify_passwordError, email=email, emailError=emailError)
     '''template = jinja2_env.get_template("Welcome.html")
