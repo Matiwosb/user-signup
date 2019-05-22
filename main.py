@@ -1,5 +1,7 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template,redirect
 import cgi
+import os
+import re
 
 app = Flask(__name__)
 
@@ -20,7 +22,7 @@ page_header = """
 
 welcomeMessage = """
 <h1>Welcome to my super cool page!</h1>
-<a href="/register">Register</a> """
+<a href="/signup">Register</a> """
 
 
 page_footer = """
@@ -30,61 +32,78 @@ page_footer = """
 
 # a registration form
 register_form = """
-<form action="/register" id="form" method="POST">
+<form action="/signup" id="form" method="POST">
       <h1>Register</h1>
-      <label for="username">Username</label>
-      <input type="text" name="username" id="username" value="{0}" />
-      <p class="error">{1}</p>
-      <label for="password">Password</label>
-      <input type="password" name="password" id="password" value="{2}" />
-      <p class="error">{3}</p>
-      <label for="password">Verify Password</label>
-      <input type="password" name="verify_password" id="verify_password" value="{4}" />
-      <p class="error">{5}</p>
+      <label for="username">Username </label>
+      <input type="text" name="username" id="username" value="{username}" />
+      <p class="error">{usernameError}</p>
+      <label for="password">Password </label>
+      <input type="password" name="password" id="password" value="{password}" />
+      <p class="error">{passwordError}</p>
+      <label for="password">Verify Password </label>
+      <input type="password" name="verify_password" id="verify_password" value="{verify_password}" />
+      <p class="error">{verify_passwordError}</p>
       <label for="email">Email(optional)</label>
-      <input type="email" name="email" id="email" value="{6}" />
-      <p class="error">{7}</p>
+      <input type="text" name="email" id="email" value="{email}"/>
+      <p class="error">{emailError}</p>
       <button type="submit">Register</button>
     </form>
 """
+@app.route('/signup')
+def signup():
+    return register_form.format(username = '', password='', verify_password='', email='', usernameError = '',
+             passwordError = '', verify_passwordError = '', emailError='' )
 
-@app.route("/register", methods=['POST'])
+@app.route('/signup', methods=['POST'])
 def register():
-    username = cgi.escape(request.form['username'])
-    password = cgi.escape(request.form['password'])
-    verify_password = cgi.escape(request.form['verify_password'])
-    email = cgi.escape(request.form['email'])
+    username = request.form['username']
+    password = request.form['password']
+    verify_password = request.form['verify_password']
+    email = request.form['email']
 
-    usernameError =""
-    passwordError = ""
-    verify_passwordError =""
-    emailError = ""
+    usernameError = ''
+    passwordError = ''
+    verify_passwordError =''
+    emailError = ''
+    emailError = ''
 
-    if not username:
-        print("no username")
-        usernameError = "Username is required"
-    if not password:
-        passwordError = "Password is required"
-    elif len(password) < 5:
-        passwordError = "Password must be at least 5 characters long"
-    else:
+    if username == "":
+        usernameError = "Please enter a valid username."
+    elif len(username) <= 3 or len(username) > 20:
+        usernameError = ""
+    elif " " in username:
+        usernameError = "Your username cannot contain any spaces."
+        username = ""
+
+    if password == "":
+        passwordError = "Please enter a valid password."
+    elif len(password) < 3 or len(password) > 20:
+        passwordError = "Password must be at least 3 to 20 characters long."
+    elif " " in password:
+        passwordError = "Your cannot contain any spaces"
+    '''else:
         hasNumber = False
         for char in password:
             if char.isdigit():
                 hasNumber = True
         if not hasNumber:
-            passwordError = "Password must contain a number"
-    if password  != verify_password:
-        verify_passwordError = "Password 2 must match password"
-    if not email: 
+            passwordError = "Password must contain a number"'''
+    if verify_password == "" or verify_password != password:
+        verify_passwordError = "Password do not match. Please try again."
+        verify_password = ""
+    if email != "":
+        if not re.match(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-]+\.[a-zA-Z0-9-.]+$)", email):
+            emailError = "Not a valid email address."
+    
 
-    if usernameError or passwordError or verify_passwordError or email:
-        print("there was an error!")
+    if usernameError or passwordError or verify_passwordError or emailError :
+        return register_form.format(username, usernameError, 
+        password, passwordError, verify_password, verify_passwordError, email, emailError)
+        '''print("there was an error!")
         content = page_header + register_form.format(username, usernameError, 
-        password, passwordError, verify_password, verify_passwordError, email) + page_footer
-        return content
-
-    return "Thanks for registering, " + username
+        password, passwordError, verify_password, verify_passwordError, email, emailError) + page_footer
+        return content'''
+    return "Welcome, " + username
 
 
 @app.route("/")
@@ -93,13 +112,10 @@ def index():
     content = page_header + welcomeMessage + page_footer
     return content
 
-@app.route("/register", methods=['GET'])
+@app.route("/signup", methods=['GET'])
 def register_page():
     # build the response string
-    content = page_header + register_form.format("", "", "", "", "", "","") + page_footer
+    content = page_header + register_form.format("", "", "", "", "", "","","") + page_footer
     return content
 
 app.run()
-
-## Cross Site scripting
-# <script>alert("HEHEHEHE")</script>
