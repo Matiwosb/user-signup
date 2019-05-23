@@ -4,7 +4,7 @@ import os
 import jinja2
 import re
 
-template_dir = os.path.join(os.path.dirname(__file__), 'temaplates')
+template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja2_env = jinja2.Environment(loader = jinja2.FileSystemLoader
 (template_dir), autoescape=True)
 
@@ -58,8 +58,7 @@ def register():
         return template.render(username=username, usernameError=usernameError, 
         password=password, passwordError=passwordError, verify_password=verify_password, 
         verify_passwordError=verify_passwordError, email=email, emailError=emailError)
-    '''template = jinja2_env.get_template("Welcome.html")
-    return template.render()'''
-    return '<h1>Welcome, ' + username + ' !</h1>'
 
+    template = jinja2_env.get_template('Welcome.html')
+    return template.render(username=username)
 app.run()
